@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env: { POSTGRES_DB: booking_test, POSTGRES_USER: booking, POSTGRES_PASSWORD: booking }
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U booking -d booking_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.3', extensions: pdo_pgsql, coverage: none }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22', cache: npm, cache-dependency-path: src/package-lock.json }
+      - working-directory: src
+        run: composer install --no-interaction --prefer-dist
+      - working-directory: src
+        run: cp .env.example .env && php artisan key:generate
+      - working-directory: src
+        env: { DB_CONNECTION: pgsql, DB_HOST: 127.0.0.1, DB_PORT: 5432, DB_DATABASE: booking_test, DB_USERNAME: booking, DB_PASSWORD: booking, CACHE_STORE: array, QUEUE_CONNECTION: sync }
+        run: php artisan migrate --force && php artisan test
+      - working-directory: src
+        run: npm ci && npm run lint && npm run format:check && npm run build
