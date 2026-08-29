@@ -96,3 +96,42 @@ function submit() {
     </form>
   </section>
 </template>
+
+<style scoped>
+.split {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 18px;
+}
+
+.client {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid #edf0f2;
+}
+
+.client small {
+  display: block;
+  margin-top: 4px;
+  color: #7c8795;
+}
+
+.avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  color: #267269;
+  font-weight: 800;
+  background: #dff2ee;
+  border-radius: 12px;
+  place-items: center;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+</style>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import http, { TOKEN_STORAGE_KEY } from './api/http.js';
+import AppointmentDetailsModal from './components/AppointmentDetailsModal.vue';
 import CabinetLayout from './layouts/CabinetLayout.vue';
 import AppointmentCreatePage from './pages/AppointmentCreatePage.vue';
 import AuthPage from './pages/AuthPage.vue';
@@ -18,6 +19,8 @@ const appointments = ref([]);
 const employees = ref([]);
 const notifications = ref([]);
 const stats = ref({});
+const selectedAppointment = ref(null);
+const appointmentFormResetKey = ref(0);
 
 // Количество непрочитанных уведомлений используется для индикатора в боковом меню.
 const unreadCount = computed(
@@ -99,7 +102,16 @@ async function createAppointment(form) {
   await executeRequest(async () => {
     await http.post('/appointments', form);
     await loadWorkspace();
+    appointmentFormResetKey.value += 1;
     page.value = 'calendar';
+  });
+}
+
+// Загружает полную карточку выбранной записи вместе с комментариями.
+async function openAppointment(appointment) {
+  await executeRequest(async () => {
+    const { data } = await http.get(`/appointments/${appointment.id}`);
+    selectedAppointment.value = data;
   });
 }
 
@@ -110,6 +122,7 @@ async function cancelAppointment(appointment) {
       status: 'cancelled',
     });
     await loadWorkspace();
+    selectedAppointment.value = null;
   });
 }
 
@@ -154,7 +167,7 @@ onMounted(async () => {
       v-if="page === 'calendar'"
       :appointments="appointments"
       :stats="stats"
-      @cancel="cancelAppointment"
+      @select="openAppointment"
     />
     <ClientsPage
       v-else-if="page === 'clients'"
@@ -165,6 +178,7 @@ onMounted(async () => {
       v-else-if="page === 'new'"
       :clients="clients"
       :employees="employees"
+      :reset-key="appointmentFormResetKey"
       @create="createAppointment"
     />
     <NotificationsPage
@@ -172,5 +186,12 @@ onMounted(async () => {
       :notifications="notifications"
     />
     <HistoryPage v-else-if="page === 'history'" />
+
+    <AppointmentDetailsModal
+      v-if="selectedAppointment"
+      :appointment="selectedAppointment"
+      @close="selectedAppointment = null"
+      @cancel="cancelAppointment"
+    />
   </CabinetLayout>
 </template>

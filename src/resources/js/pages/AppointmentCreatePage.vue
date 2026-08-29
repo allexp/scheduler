@@ -1,8 +1,8 @@
 <script setup>
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 
 // Справочники клиентов и сотрудников загружаются корневым компонентом.
-defineProps({
+const props = defineProps({
   clients: {
     type: Array,
     default: () => [],
@@ -10,6 +10,10 @@ defineProps({
   employees: {
     type: Array,
     default: () => [],
+  },
+  resetKey: {
+    type: Number,
+    default: 0,
   },
 });
 
@@ -28,11 +32,16 @@ function createEmptyForm() {
   };
 }
 
-// Передаёт данные записи родителю и сбрасывает форму после отправки события.
+// Передаёт копию данных родителю, сохраняя локальные поля до успешного ответа API.
 function submit() {
   emit('create', { ...form });
-  Object.assign(form, createEmptyForm());
 }
+
+// Родитель изменяет ключ только после успешного создания записи.
+watch(
+  () => props.resetKey,
+  () => Object.assign(form, createEmptyForm()),
+);
 </script>
 
 <template>
@@ -123,3 +132,9 @@ function submit() {
     </form>
   </section>
 </template>
+
+<style scoped>
+.appointment {
+  max-width: 720px;
+}
+</style>

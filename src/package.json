@@ -6,8 +6,8 @@
         "build": "vite build",
         "dev": "vite",
         "lint": "eslint resources/js",
-        "format": "prettier --write resources/js vite.config.js eslint.config.js",
-        "format:check": "prettier --check resources/js vite.config.js eslint.config.js"
+        "format": "prettier --write resources/js resources/css vite.config.js eslint.config.js",
+        "format:check": "prettier --check resources/js resources/css vite.config.js eslint.config.js"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^6.0.0",

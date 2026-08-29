@@ -58,3 +58,46 @@ const pageTitles = {
     </main>
   </div>
 </template>
+
+<style scoped>
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: 100vh;
+}
+
+main {
+  width: 100%;
+  max-width: 1500px;
+  padding: 35px 44px;
+  margin: auto;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+header h2 {
+  margin: 5px 0;
+  font-size: 28px;
+}
+
+header small {
+  color: #8894a5;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  main {
+    padding: 24px 15px;
+  }
+}
+</style>

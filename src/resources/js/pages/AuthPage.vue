@@ -79,3 +79,59 @@ function submit() {
     </form>
   </div>
 </template>
+
+<style scoped>
+.auth-shell {
+  display: grid;
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #d8f1eb, transparent 38%), #f3f6f7;
+  place-items: center;
+}
+
+.auth-card {
+  display: grid;
+  gap: 14px;
+  width: min(420px, 92vw);
+  padding: 35px;
+  background: #fff;
+  border-radius: var(--radius-large);
+  box-shadow: 0 20px 60px #1b3e4b1c;
+}
+
+.auth-card h1 {
+  margin: 5px 0 0;
+}
+
+.auth-card p {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 11px 12px;
+  background: #fff;
+  border: 1px solid #d8dee5;
+  border-radius: var(--radius-small);
+}
+
+.auth-card button {
+  padding: 12px 18px;
+  color: #fff;
+  font-weight: 700;
+  background: var(--color-primary);
+  border: 0;
+  border-radius: 9px;
+}
+
+.auth-card a {
+  color: var(--color-primary);
+  text-align: center;
+}
+
+.brand {
+  color: var(--color-primary);
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+</style>
