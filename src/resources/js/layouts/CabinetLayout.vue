@@ -22,6 +22,7 @@ defineEmits(['navigate', 'logout']);
 // Заголовки страниц хранятся рядом с layout, потому что отображаются в общей шапке.
 const pageTitles = {
   calendar: 'Календарь записей',
+  appointments: 'Список записей',
   clients: 'Клиенты',
   new: 'Новая запись',
   notifications: 'Уведомления',

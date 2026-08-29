@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendAppointmentNotification;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
@@ -15,18 +16,41 @@ use Illuminate\Validation\ValidationException;
  */
 class AppointmentController extends Controller
 {
-    /** Возвращает записи за указанный период. */
-    public function index(Request $request): Collection
+    /** Возвращает записи для календаря или постраничного табличного списка. */
+    public function index(Request $request): Collection|LengthAwarePaginator
     {
-        return Appointment::with(['client:id,first_name,last_name,phone', 'employee:id,name'])
+        $filters = $request->validate([
+            'start' => 'nullable|date',
+            'end' => 'nullable|date',
+            'date' => 'nullable|date',
+            'search' => 'nullable|string|max:100',
+            'employee_id' => 'nullable|integer|exists:users,id',
+            'paginate' => 'nullable|boolean',
+        ]);
+
+        $query = Appointment::with(['client:id,first_name,last_name,phone', 'employee:id,name'])
             ->when($request->start, fn ($query) => $query->where('starts_at', '>=', $request->start))
             ->when($request->end, fn ($query) => $query->where('starts_at', '<=', $request->end))
+            ->when($request->date, fn ($query) => $query->whereDate('starts_at', $request->date))
+            ->when($request->search, function ($query, string $search): void {
+                $query->whereHas('client', function ($clientQuery) use ($search): void {
+                    $pattern = '%'.mb_strtolower($search).'%';
+
+                    $clientQuery
+                        ->whereRaw('lower(first_name) like ?', [$pattern])
+                        ->orWhereRaw('lower(last_name) like ?', [$pattern])
+                        ->orWhere('phone', 'like', $pattern)
+                        ->orWhereRaw("lower(first_name || ' ' || last_name) like ?", [$pattern])
+                        ->orWhereRaw("lower(last_name || ' ' || first_name) like ?", [$pattern]);
+                });
+            })
             ->when(
                 $request->employee_id,
                 fn ($query) => $query->where('employee_id', $request->employee_id),
             )
-            ->orderBy('starts_at')
-            ->get();
+            ->orderBy('starts_at');
+
+        return ($filters['paginate'] ?? false) ? $query->paginate(25) : $query->get();
     }
 
     /** Создаёт новую запись и ставит уведомление в очередь. */

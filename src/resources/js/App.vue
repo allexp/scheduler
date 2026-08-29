@@ -2,8 +2,10 @@
 import { computed, onMounted, ref } from 'vue';
 import http, { TOKEN_STORAGE_KEY } from './api/http.js';
 import AppointmentDetailsModal from './components/AppointmentDetailsModal.vue';
+import ClientDetailsModal from './components/ClientDetailsModal.vue';
 import CabinetLayout from './layouts/CabinetLayout.vue';
 import AppointmentCreatePage from './pages/AppointmentCreatePage.vue';
+import AppointmentListPage from './pages/AppointmentListPage.vue';
 import AuthPage from './pages/AuthPage.vue';
 import CalendarPage from './pages/CalendarPage.vue';
 import ClientsPage from './pages/ClientsPage.vue';
@@ -20,6 +22,7 @@ const employees = ref([]);
 const notifications = ref([]);
 const stats = ref({});
 const selectedAppointment = ref(null);
+const selectedClient = ref(null);
 const appointmentFormResetKey = ref(0);
 
 // Количество непрочитанных уведомлений используется для индикатора в боковом меню.
@@ -115,6 +118,20 @@ async function openAppointment(appointment) {
   });
 }
 
+// Загружает полную карточку клиента вместе с его записями и комментариями.
+async function openClient(client) {
+  await executeRequest(async () => {
+    const { data } = await http.get(`/clients/${client.id}`);
+    selectedClient.value = data;
+  });
+}
+
+// Закрывает карточку клиента перед переходом к выбранной записи.
+async function openAppointmentFromClient(appointment) {
+  selectedClient.value = null;
+  await openAppointment(appointment);
+}
+
 // Переводит выбранную запись в статус «отменена».
 async function cancelAppointment(appointment) {
   await executeRequest(async () => {
@@ -169,6 +186,11 @@ onMounted(async () => {
       :stats="stats"
       @select="openAppointment"
     />
+    <AppointmentListPage
+      v-else-if="page === 'appointments'"
+      @select-appointment="openAppointment"
+      @select-client="openClient"
+    />
     <ClientsPage
       v-else-if="page === 'clients'"
       :clients="clients"
@@ -192,6 +214,12 @@ onMounted(async () => {
       :appointment="selectedAppointment"
       @close="selectedAppointment = null"
       @cancel="cancelAppointment"
+    />
+    <ClientDetailsModal
+      v-if="selectedClient"
+      :client="selectedClient"
+      @close="selectedClient = null"
+      @select-appointment="openAppointmentFromClient"
     />
   </CabinetLayout>
 </template>

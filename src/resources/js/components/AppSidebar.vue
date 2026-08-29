@@ -33,6 +33,12 @@ defineEmits(['navigate', 'logout']);
         ▦ Календарь
       </button>
       <button
+        :class="{ active: page === 'appointments' }"
+        @click="$emit('navigate', 'appointments')"
+      >
+        ☷ Список записей
+      </button>
+      <button
         :class="{ active: page === 'clients' }"
         @click="$emit('navigate', 'clients')"
       >
