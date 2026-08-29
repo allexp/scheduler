@@ -16,8 +16,11 @@ const props = defineProps({
 defineEmits(['select']);
 
 const month = ref(new Date());
-const today = month.value.getDate();
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+// Начало текущего дня используется для визуального разделения прошлого и будущего.
+const today = new Date();
+today.setHours(0, 0, 0, 0);
 
 // Локализованное название отображаемого месяца для заголовка календаря.
 const monthLabel = computed(() =>
@@ -63,6 +66,26 @@ function moveMonth(offset) {
   month.value = new Date(month.value.getFullYear(), month.value.getMonth() + offset, 1);
 }
 
+// Возвращает календарную дату для ячейки отображаемого месяца.
+function dateForDay(day) {
+  return new Date(month.value.getFullYear(), month.value.getMonth(), day);
+}
+
+// Определяет, соответствует ли ячейка сегодняшней дате.
+function isToday(day) {
+  return day && dateForDay(day).getTime() === today.getTime();
+}
+
+// Определяет, находится ли календарная дата в прошлом.
+function isPastDay(day) {
+  return day && dateForDay(day).getTime() < today.getTime();
+}
+
+// Запись считается прошедшей после наступления времени её окончания.
+function isPastAppointment(appointment) {
+  return new Date(appointment.ends_at).getTime() < Date.now();
+}
+
 // Форматирует время записи без отображения даты.
 function formatTime(date) {
   return new Date(date).toLocaleTimeString('ru-RU', {
@@ -96,6 +119,13 @@ function formatTime(date) {
         <button @click="moveMonth(1)">→</button>
       </div>
 
+      <div class="calendar-legend">
+        <span><i class="today-marker" />Сегодня</span>
+        <span><i class="scheduled-marker" />Предстоящая запись</span>
+        <span><i class="past-marker" />Прошедшая запись</span>
+        <span><i class="cancelled-marker" />Отменена</span>
+      </div>
+
       <div class="week">
         <b
           v-for="day in weekDays"
@@ -109,14 +139,18 @@ function formatTime(date) {
         <div
           v-for="(day, index) in days"
           :key="`${day}-${index}`"
-          :class="{ empty: !day, today: day === today }"
+          :class="{
+            empty: !day,
+            'past-day': isPastDay(day),
+            today: isToday(day),
+          }"
           class="day"
         >
-          <span>{{ day }}</span>
+          <span class="day-number">{{ day }}</span>
           <button
             v-for="appointment in appointmentsForDay(day)"
             :key="appointment.id"
-            :class="appointment.status"
+            :class="[appointment.status, { 'past-appointment': isPastAppointment(appointment) }]"
             :title="appointment.service"
             @click="$emit('select', appointment)"
           >
@@ -181,6 +215,44 @@ function formatTime(date) {
   border-radius: var(--radius-small);
 }
 
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  padding: 0 18px 16px;
+  color: #6f7b8b;
+  font-size: 12px;
+}
+
+.calendar-legend span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.calendar-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.today-marker {
+  background: #ff9000;
+}
+
+.scheduled-marker {
+  background: var(--color-primary);
+}
+
+.past-marker {
+  background: #9aa4b1;
+}
+
+.cancelled-marker {
+  background: var(--color-danger);
+}
+
 .week,
 .grid {
   display: grid;
@@ -206,15 +278,38 @@ function formatTime(date) {
 .day.empty {
   background: #f8f9fa;
 }
-.day.today {
-  border: 2px solid #FF9000;
+
+.day.past-day {
+  background: #f4f5f7;
 }
 
-.day > span {
+.day.today {
+  position: relative;
+  z-index: 1;
+  background: #fffaf1;
+  box-shadow: inset 0 0 0 2px #ff9000;
+}
+
+.day-number {
   display: block;
+  width: 26px;
+  height: 26px;
   margin-bottom: 6px;
   color: #667285;
   font-size: 13px;
+  line-height: 26px;
+  text-align: center;
+  border-radius: 50%;
+}
+
+.past-day .day-number {
+  color: #a3abb5;
+}
+
+.today .day-number {
+  color: #fff;
+  font-weight: 800;
+  background: #ff9000;
 }
 
 .day button {
@@ -234,8 +329,24 @@ function formatTime(date) {
 }
 
 .day button.cancelled {
+  color: #93534c;
+  background: #f8e9e7;
+  border-left-color: var(--color-danger);
   text-decoration: line-through;
-  opacity: 0.45;
+  opacity: 0.7;
+}
+
+.day button.completed {
+  color: #4f6088;
+  background: #e9edf7;
+  border-left-color: #7384ad;
+}
+
+.day button.past-appointment:not(.cancelled):not(.completed) {
+  color: #707a87;
+  background: #e8eaed;
+  border-left-color: #9aa4b1;
+  opacity: 0.82;
 }
 
 .day time {
