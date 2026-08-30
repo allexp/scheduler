@@ -1,12 +1,38 @@
 <script setup>
+import { reactive, ref } from 'vue';
+
 defineProps({
   client: {
     type: Object,
     required: true,
   },
+  error: {
+    type: String,
+    default: '',
+  },
 });
 
-defineEmits(['close', 'select-appointment']);
+const emit = defineEmits(['close', 'save', 'select-appointment']);
+const editing = ref(false);
+const form = reactive({});
+
+// Открывает форму с актуальными значениями выбранного клиента.
+function startEditing(client) {
+  Object.assign(form, {
+    first_name: client.first_name ?? '',
+    last_name: client.last_name ?? '',
+    phone: client.phone ?? '',
+    email: client.email ?? '',
+    birthday: client.birthday?.slice(0, 10) ?? '',
+    notes: client.notes ?? '',
+  });
+  editing.value = true;
+}
+
+// Передаёт изменённые поля родителю для сохранения через API.
+function submit(client) {
+  emit('save', { id: client.id, data: { ...form } });
+}
 
 function formatDate(date) {
   return date ? new Date(date).toLocaleDateString('ru-RU') : 'Не указана';
@@ -47,67 +73,137 @@ function formatAppointmentDate(date) {
           </button>
         </header>
 
-        <dl class="client-details">
-          <div>
-            <dt>Телефон</dt>
-            <dd>{{ client.phone || 'Не указан' }}</dd>
+        <form
+          v-if="editing"
+          class="edit-form"
+          @submit.prevent="submit(client)"
+        >
+          <div class="name-fields">
+            <label
+              >Имя<input
+                v-model="form.first_name"
+                required
+                maxlength="100"
+            /></label>
+            <label
+              >Фамилия<input
+                v-model="form.last_name"
+                required
+                maxlength="100"
+            /></label>
           </div>
-          <div>
-            <dt>Email</dt>
-            <dd>{{ client.email || 'Не указан' }}</dd>
+          <label
+            >Телефон<input
+              v-model="form.phone"
+              maxlength="30"
+          /></label>
+          <label
+            >Email<input
+              v-model="form.email"
+              type="email"
+              maxlength="255"
+          /></label>
+          <label
+            >Дата рождения<input
+              v-model="form.birthday"
+              type="date"
+          /></label>
+          <label
+            >Заметки<textarea
+              v-model="form.notes"
+              maxlength="5000"
+            />
+          </label>
+          <p
+            v-if="error"
+            class="error"
+          >
+            {{ error }}
+          </p>
+          <div class="modal-actions">
+            <button
+              type="button"
+              class="secondary"
+              @click="editing = false"
+            >
+              Отмена
+            </button>
+            <button class="primary">Сохранить изменения</button>
           </div>
-          <div>
-            <dt>Дата рождения</dt>
-            <dd>{{ formatDate(client.birthday) }}</dd>
-          </div>
-        </dl>
+        </form>
 
-        <section>
-          <h3>Заметки</h3>
-          <p class="notes">{{ client.notes || 'Заметок нет.' }}</p>
-        </section>
+        <template v-else>
+          <dl class="client-details">
+            <div>
+              <dt>Телефон</dt>
+              <dd>{{ client.phone || 'Не указан' }}</dd>
+            </div>
+            <div>
+              <dt>Email</dt>
+              <dd>{{ client.email || 'Не указан' }}</dd>
+            </div>
+            <div>
+              <dt>Дата рождения</dt>
+              <dd>{{ formatDate(client.birthday) }}</dd>
+            </div>
+          </dl>
 
-        <section class="client-appointments">
-          <h3>Записи клиента</h3>
+          <section>
+            <h3>Заметки</h3>
+            <p class="notes">{{ client.notes || 'Заметок нет.' }}</p>
+          </section>
+
+          <section class="client-appointments">
+            <h3>Записи клиента</h3>
+            <button
+              v-for="appointment in client.appointments"
+              :key="appointment.id"
+              class="appointment-row"
+              @click="$emit('select-appointment', appointment)"
+            >
+              <span>
+                <b>{{ appointment.service }}</b>
+                <small>{{ formatAppointmentDate(appointment.starts_at) }}</small>
+              </span>
+              <span>Открыть →</span>
+            </button>
+            <p
+              v-if="!client.appointments?.length"
+              class="muted"
+            >
+              У клиента пока нет записей.
+            </p>
+          </section>
+
+          <section class="client-comments">
+            <h3>Комментарии</h3>
+            <div
+              v-for="comment in client.comments"
+              :key="comment.id"
+              class="comment"
+            >
+              <b>{{ comment.user.name }}</b>
+              <p>{{ comment.body }}</p>
+            </div>
+            <p
+              v-if="!client.comments?.length"
+              class="muted"
+            >
+              Комментариев пока нет.
+            </p>
+          </section>
+        </template>
+
+        <footer
+          v-if="!editing"
+          class="modal-actions"
+        >
           <button
-            v-for="appointment in client.appointments"
-            :key="appointment.id"
-            class="appointment-row"
-            @click="$emit('select-appointment', appointment)"
+            class="primary"
+            @click="startEditing(client)"
           >
-            <span>
-              <b>{{ appointment.service }}</b>
-              <small>{{ formatAppointmentDate(appointment.starts_at) }}</small>
-            </span>
-            <span>Открыть →</span>
+            Редактировать
           </button>
-          <p
-            v-if="!client.appointments?.length"
-            class="muted"
-          >
-            У клиента пока нет записей.
-          </p>
-        </section>
-
-        <section class="client-comments">
-          <h3>Комментарии</h3>
-          <div
-            v-for="comment in client.comments"
-            :key="comment.id"
-            class="comment"
-          >
-            <b>{{ comment.user.name }}</b>
-            <p>{{ comment.body }}</p>
-          </div>
-          <p
-            v-if="!client.comments?.length"
-            class="muted"
-          >
-            Комментариев пока нет.
-          </p>
-        </section>
-
-        <footer class="modal-actions">
           <button
             class="secondary"
             @click="$emit('close')"
@@ -243,8 +339,38 @@ section h3 {
 
 .modal-actions {
   display: flex;
+  gap: 10px;
   justify-content: flex-end;
   margin-top: 28px;
+}
+
+.edit-form {
+  display: grid;
+  gap: 14px;
+}
+
+.edit-form label {
+  display: grid;
+  gap: 6px;
+  color: #536071;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.edit-form input,
+.edit-form textarea {
+  width: 100%;
+}
+
+.edit-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.name-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 @media (max-width: 650px) {
@@ -258,6 +384,10 @@ section h3 {
   }
 
   .client-details {
+    grid-template-columns: 1fr;
+  }
+
+  .name-fields {
     grid-template-columns: 1fr;
   }
 }

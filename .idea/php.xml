@@ -138,6 +138,10 @@
       <path value="$PROJECT_DIR$/src/vendor/psr/clock" />
       <path value="$PROJECT_DIR$/src/vendor/psr/event-dispatcher" />
       <path value="$PROJECT_DIR$/src/vendor/psr/container" />
+      <path value="$PROJECT_DIR$/src/vendor/symfony/yaml" />
+      <path value="$PROJECT_DIR$/src/vendor/laravel/boost" />
+      <path value="$PROJECT_DIR$/src/vendor/laravel/roster" />
+      <path value="$PROJECT_DIR$/src/vendor/laravel/mcp" />
     </include_path>
   </component>
   <component name="PhpInterpreters">

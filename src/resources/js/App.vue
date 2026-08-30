@@ -123,6 +123,15 @@ async function createClient(form) {
   });
 }
 
+// Сохраняет карточку клиента и обновляет связанные представления кабинета.
+async function updateClient({ id, data }) {
+  await executeRequest(async () => {
+    await http.patch(`/clients/${id}`, data);
+    await loadWorkspace();
+    selectedClient.value = null;
+  });
+}
+
 // Создаёт запись клиента и возвращает пользователя к календарю.
 async function createAppointment(form) {
   await executeRequest(async () => {
@@ -229,6 +238,7 @@ onMounted(async () => {
       v-else-if="page === 'clients'"
       :clients="clients"
       @create="createClient"
+      @select="openClient"
     />
     <AppointmentCreatePage
       v-else-if="page === 'new'"
@@ -263,7 +273,9 @@ onMounted(async () => {
     <ClientDetailsModal
       v-if="selectedClient"
       :client="selectedClient"
+      :error="error"
       @close="selectedClient = null"
+      @save="updateClient"
       @select-appointment="openAppointmentFromClient"
     />
   </CabinetLayout>

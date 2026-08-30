@@ -18,6 +18,33 @@ class BookingApiTest extends TestCase {
         $this->withToken($token)->postJson('/api/appointments',['client_id'=>$client['id'],'employee_id'=>$employee->id,'service'=>'Консультация','starts_at'=>'2030-01-10 10:00:00','ends_at'=>'2030-01-10 11:00:00'])->assertCreated();
         Queue::assertPushed(SendAppointmentNotification::class);
     }
+
+    public function test_employee_can_update_client(): void
+    {
+        $token = 'employee-token';
+        User::factory()->create(['role' => 'employee', 'api_token' => hash('sha256', $token)]);
+        $client = $this->withToken($token)->postJson('/api/clients', [
+            'first_name' => 'Иван',
+            'last_name' => 'Петров',
+        ])->assertCreated()->json();
+
+        $this->withToken($token)->patchJson('/api/clients/'.$client['id'], [
+            'first_name' => 'Иван',
+            'last_name' => 'Сидоров',
+            'phone' => '+79991112233',
+            'email' => 'ivan@example.com',
+            'birthday' => '1990-05-15',
+            'notes' => 'Предпочитает утренние записи',
+        ])->assertOk()
+            ->assertJsonPath('full_name', 'Сидоров Иван')
+            ->assertJsonPath('phone', '+79991112233');
+
+        $this->assertDatabaseHas('clients', [
+            'id' => $client['id'],
+            'last_name' => 'Сидоров',
+            'email' => 'ivan@example.com',
+        ]);
+    }
     public function test_employee_cannot_open_history():void{$token='test-token';User::factory()->create(['role'=>'employee','api_token'=>hash('sha256',$token)]);$this->withToken($token)->getJson('/api/history')->assertForbidden();}
 
     public function test_only_admin_can_manage_users(): void

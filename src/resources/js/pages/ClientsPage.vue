@@ -9,7 +9,7 @@ defineProps({
   },
 });
 
-const emit = defineEmits(['create']);
+const emit = defineEmits(['create', 'select']);
 const form = reactive(createEmptyForm());
 
 // Возвращает независимое начальное состояние формы клиента.
@@ -36,10 +36,12 @@ function submit() {
     <div class="card">
       <h3>Карточки клиентов</h3>
 
-      <div
+      <button
         v-for="client in clients"
         :key="client.id"
         class="client"
+        type="button"
+        @click="emit('select', client)"
       >
         <div class="avatar">{{ client.first_name[0] }}{{ client.last_name[0] }}</div>
         <div>
@@ -48,7 +50,7 @@ function submit() {
             {{ client.phone || 'Телефон не указан' }} · {{ client.email || 'Email не указан' }}
           </small>
         </div>
-      </div>
+      </button>
 
       <div
         v-if="!clients.length"
@@ -106,10 +108,19 @@ function submit() {
 
 .client {
   display: flex;
+  width: 100%;
   gap: 14px;
   align-items: center;
   padding: 14px 0;
+  color: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
   border-bottom: 1px solid #edf0f2;
+}
+
+.client:hover {
+  background: #f7f9fa;
 }
 
 .client small {

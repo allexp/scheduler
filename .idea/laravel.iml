@@ -126,6 +126,10 @@
       <excludeFolder url="file://$MODULE_DIR$/src/vendor/voku/portable-ascii" />
       <excludeFolder url="file://$MODULE_DIR$/src/storage/app" />
       <excludeFolder url="file://$MODULE_DIR$/src/storage/framework" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laravel/boost" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laravel/mcp" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/laravel/roster" />
+      <excludeFolder url="file://$MODULE_DIR$/src/vendor/symfony/yaml" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
