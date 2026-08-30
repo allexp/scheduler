@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import http, { TOKEN_STORAGE_KEY } from './api/http.js';
+import http, { clearStoredToken, getStoredToken, storeToken } from './api/http.js';
 import AppointmentDetailsModal from './components/AppointmentDetailsModal.vue';
 import ClientDetailsModal from './components/ClientDetailsModal.vue';
 import CabinetLayout from './layouts/CabinetLayout.vue';
@@ -57,7 +57,7 @@ async function authenticate({ registerMode, form }) {
     const endpoint = registerMode ? '/register' : '/login';
     const { data } = await http.post(endpoint, form);
 
-    localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+    storeToken(data.token, !registerMode && form.remember);
     user.value = data.user;
     await loadWorkspace();
   });
@@ -66,7 +66,7 @@ async function authenticate({ registerMode, form }) {
 // Завершает серверную сессию API и удаляет локальный токен доступа.
 async function logout() {
   await http.post('/logout');
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  clearStoredToken();
   user.value = null;
 }
 
@@ -145,14 +145,14 @@ async function cancelAppointment(appointment) {
 
 // При открытии приложения восстанавливает авторизацию по сохранённому токену.
 onMounted(async () => {
-  if (!localStorage.getItem(TOKEN_STORAGE_KEY)) {
+  if (!getStoredToken()) {
     return;
   }
 
   try {
     await loadWorkspace();
   } catch {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    clearStoredToken();
     user.value = null;
   }
 });

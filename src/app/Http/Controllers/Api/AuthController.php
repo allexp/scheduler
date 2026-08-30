@@ -29,7 +29,11 @@ class AuthController extends Controller
     /** Авторизует пользователя и выдаёт новый токен доступа. */
     public function login(Request $request)
     {
-        $data = $request->validate(['email' => 'required|email', 'password' => 'required|string']);
+        $data = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string',
+            'remember' => 'sometimes|boolean',
+        ]);
         $user = User::where('email', $data['email'])->first();
         if (! $user || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages(['email' => ['Неверный email или пароль.']]);

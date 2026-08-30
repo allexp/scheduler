@@ -18,6 +18,7 @@ const form = reactive({
   email: 'admin@example.com',
   password: 'password',
   password_confirmation: 'password',
+  remember: false,
 });
 
 // Родитель определяет API-маршрут по переданному режиму формы.
@@ -45,6 +46,17 @@ function submit() {
         placeholder="Имя"
         required
       />
+
+      <label
+        v-if="!registerMode"
+        class="remember"
+      >
+        <input
+          v-model="form.remember"
+          type="checkbox"
+        />
+        <span>Запомнить меня</span>
+      </label>
       <input
         v-model="form.email"
         type="email"
@@ -113,6 +125,19 @@ function submit() {
   background: #fff;
   border: 1px solid #d8dee5;
   border-radius: var(--radius-small);
+}
+
+.remember {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.remember input {
+  width: auto;
+  margin: 0;
 }
 
 .auth-card button {
