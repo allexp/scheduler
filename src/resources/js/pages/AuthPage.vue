@@ -36,9 +36,8 @@ function submit() {
       class="auth-card"
       @submit.prevent="submit"
     >
-      <div class="brand">Линия времени</div>
+      <div class="brand">Расписание</div>
       <h1>{{ registerMode ? 'Регистрация' : 'Вход в кабинет' }}</h1>
-      <p>Управление клиентами и расписанием</p>
 
       <input
         v-if="registerMode"
@@ -47,16 +46,7 @@ function submit() {
         required
       />
 
-      <label
-        v-if="!registerMode"
-        class="remember"
-      >
-        <input
-          v-model="form.remember"
-          type="checkbox"
-        />
-        <span>Запомнить меня</span>
-      </label>
+
       <input
         v-model="form.email"
         type="email"
@@ -76,6 +66,17 @@ function submit() {
         placeholder="Повторите пароль"
         required
       />
+
+        <label
+            v-if="!registerMode"
+            class="remember"
+        >
+            <input
+                v-model="form.remember"
+                type="checkbox"
+            />
+            <span>Запомнить меня</span>
+        </label>
 
       <div
         v-if="props.error"

@@ -21,8 +21,8 @@ defineEmits(['navigate', 'logout']);
 <template>
   <aside>
     <div class="logo">
-      <span>Л</span>
-      <b>Линия<br />времени</b>
+      <span>Р</span>
+      <b>Расписание</b>
     </div>
 
     <nav>
