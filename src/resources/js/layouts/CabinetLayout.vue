@@ -27,6 +27,7 @@ const pageTitles = {
   new: 'Новая запись',
   notifications: 'Уведомления',
   history: 'История изменений',
+  users: 'Пользователи',
 };
 </script>
 

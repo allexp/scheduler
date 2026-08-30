@@ -19,4 +19,47 @@ class BookingApiTest extends TestCase {
         Queue::assertPushed(SendAppointmentNotification::class);
     }
     public function test_employee_cannot_open_history():void{$token='test-token';User::factory()->create(['role'=>'employee','api_token'=>hash('sha256',$token)]);$this->withToken($token)->getJson('/api/history')->assertForbidden();}
+
+    public function test_only_admin_can_manage_users(): void
+    {
+        $employeeToken = 'employee-token';
+        User::factory()->create(['role' => 'employee', 'api_token' => hash('sha256', $employeeToken)]);
+        $this->withToken($employeeToken)->getJson('/api/users')->assertForbidden();
+
+        $adminToken = 'admin-token';
+        User::factory()->create(['role' => 'admin', 'api_token' => hash('sha256', $adminToken)]);
+        $created = $this->withToken($adminToken)->postJson('/api/users', [
+            'name' => 'Новый сотрудник',
+            'email' => 'new@example.com',
+            'role' => 'employee',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertCreated()->assertJsonPath('role', 'employee')->json();
+
+        $this->withToken($adminToken)->putJson('/api/users/'.$created['id'], [
+            'name' => 'Новый администратор',
+            'email' => 'new@example.com',
+            'role' => 'admin',
+            'password' => '',
+            'password_confirmation' => '',
+        ])->assertOk()->assertJsonPath('role', 'admin');
+
+        $this->withToken($adminToken)->deleteJson('/api/users/'.$created['id'])->assertNoContent();
+        $this->assertDatabaseMissing('users', ['id' => $created['id']]);
+    }
+
+    public function test_admin_cannot_delete_self_or_demote_last_admin(): void
+    {
+        $token = 'admin-token';
+        $admin = User::factory()->create(['role' => 'admin', 'api_token' => hash('sha256', $token)]);
+
+        $this->withToken($token)->deleteJson('/api/users/'.$admin->id)->assertUnprocessable();
+        $this->withToken($token)->putJson('/api/users/'.$admin->id, [
+            'name' => $admin->name,
+            'email' => $admin->email,
+            'role' => 'employee',
+            'password' => '',
+            'password_confirmation' => '',
+        ])->assertUnprocessable();
+    }
 }

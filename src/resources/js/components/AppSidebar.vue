@@ -59,6 +59,13 @@ defineEmits(['navigate', 'logout']);
       </button>
       <button
         v-if="user.role === 'admin'"
+        :class="{ active: page === 'users' }"
+        @click="$emit('navigate', 'users')"
+      >
+        ♙ Пользователи
+      </button>
+      <button
+        v-if="user.role === 'admin'"
         :class="{ active: page === 'history' }"
         @click="$emit('navigate', 'history')"
       >

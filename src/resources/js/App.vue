@@ -11,6 +11,7 @@ import CalendarPage from './pages/CalendarPage.vue';
 import ClientsPage from './pages/ClientsPage.vue';
 import HistoryPage from './pages/HistoryPage.vue';
 import NotificationsPage from './pages/NotificationsPage.vue';
+import UsersPage from './pages/UsersPage.vue';
 
 // Корневой компонент хранит общее состояние кабинета и координирует дочерние страницы.
 const user = ref(null);
@@ -24,6 +25,7 @@ const stats = ref({});
 const selectedAppointment = ref(null);
 const selectedClient = ref(null);
 const appointmentFormResetKey = ref(0);
+const users = ref([]);
 
 // Количество непрочитанных уведомлений используется для индикатора в боковом меню.
 const unreadCount = computed(
@@ -89,6 +91,26 @@ async function loadWorkspace() {
   employees.value = employeesResponse.data;
   stats.value = statsResponse.data;
   notifications.value = notificationsResponse.data.data;
+
+  if (user.value.role === 'admin') {
+    users.value = (await http.get('/users')).data;
+  }
+}
+
+// Создаёт или обновляет пользователя и перезагружает административный список.
+async function saveUser({ id, data }) {
+  await executeRequest(async () => {
+    await http[id ? 'put' : 'post'](id ? `/users/${id}` : '/users', data);
+    users.value = (await http.get('/users')).data;
+  });
+}
+
+// Удаляет пользователя и обновляет список.
+async function removeUser(id) {
+  await executeRequest(async () => {
+    await http.delete(`/users/${id}`);
+    users.value = (await http.get('/users')).data;
+  });
 }
 
 // Создаёт карточку клиента и синхронизирует состояние кабинета с сервером.
@@ -208,6 +230,13 @@ onMounted(async () => {
       :notifications="notifications"
     />
     <HistoryPage v-else-if="page === 'history'" />
+    <UsersPage
+      v-else-if="page === 'users' && user.role === 'admin'"
+      :users="users"
+      :current-user-id="user.id"
+      @save="saveUser"
+      @remove="removeUser"
+    />
 
     <AppointmentDetailsModal
       v-if="selectedAppointment"

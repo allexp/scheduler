@@ -48,12 +48,4 @@ class MetaController extends Controller
             ->paginate(30);
     }
 
-    /** Изменяет роль выбранного пользователя. */
-    public function updateUser(Request $request, User $user)
-    {
-        $data = $request->validate(['role' => 'required|in:admin,employee']);
-        $user->update($data);
-
-        return $user;
-    }
 }
