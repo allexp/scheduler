@@ -78,39 +78,45 @@ function formatAppointmentDate(date) {
           class="edit-form"
           @submit.prevent="submit(client)"
         >
-          <div class="name-fields">
-            <label
+          <div class="form-row">
+            <label class="form-field"
               >Имя<input
                 v-model="form.first_name"
+                class="form-control"
                 required
                 maxlength="100"
             /></label>
-            <label
+            <label class="form-field"
               >Фамилия<input
                 v-model="form.last_name"
+                class="form-control"
                 required
                 maxlength="100"
             /></label>
           </div>
-          <label
+          <label class="form-field"
             >Телефон<input
               v-model="form.phone"
+              class="form-control"
               maxlength="30"
           /></label>
-          <label
+          <label class="form-field"
             >Email<input
               v-model="form.email"
+              class="form-control"
               type="email"
               maxlength="255"
           /></label>
-          <label
+          <label class="form-field"
             >Дата рождения<input
               v-model="form.birthday"
+              class="form-control"
               type="date"
           /></label>
-          <label
+          <label class="form-field"
             >Заметки<textarea
               v-model="form.notes"
+              class="form-control form-textarea"
               maxlength="5000"
             />
           </label>
@@ -349,25 +355,42 @@ section h3 {
   gap: 14px;
 }
 
-.edit-form label {
+.form-field {
   display: grid;
-  gap: 6px;
+  gap: 7px;
   color: #536071;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 700;
 }
 
-.edit-form input,
-.edit-form textarea {
+.form-control {
   width: 100%;
+  padding: 11px 12px;
+  color: var(--color-text);
+  background: #fff;
+  border: 1px solid #d8dee5;
+  border-radius: var(--radius-small);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.edit-form textarea {
+.form-control:hover {
+  border-color: #b9c3ce;
+}
+
+.form-control:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px #2672691f;
+}
+
+.form-textarea {
   min-height: 120px;
   resize: vertical;
 }
 
-.name-fields {
+.form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
@@ -387,7 +410,7 @@ section h3 {
     grid-template-columns: 1fr;
   }
 
-  .name-fields {
+  .form-row {
     grid-template-columns: 1fr;
   }
 }
