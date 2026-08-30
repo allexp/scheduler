@@ -18,6 +18,7 @@ RUN composer install \
     --no-dev \
     --no-interaction \
     --no-progress \
+    --ignore-platform-req=ext-sockets \
     --prefer-dist \
     --optimize-autoloader
 
