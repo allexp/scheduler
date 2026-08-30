@@ -2,6 +2,13 @@
 import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import http from '../api/http.js';
 
+const props = defineProps({
+  refreshKey: {
+    type: Number,
+    default: 0,
+  },
+});
+
 defineEmits(['select-appointment', 'select-client']);
 
 const appointments = ref([]);
@@ -57,6 +64,12 @@ watch(
 watch(
   () => filters.date,
   () => loadAppointments(),
+);
+
+// После изменения записи в карточке перечитывает текущую страницу списка.
+watch(
+  () => props.refreshKey,
+  () => loadAppointments(pagination.value?.current_page ?? 1),
 );
 
 onMounted(() => loadAppointments());

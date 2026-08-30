@@ -25,6 +25,7 @@ const stats = ref({});
 const selectedAppointment = ref(null);
 const selectedClient = ref(null);
 const appointmentFormResetKey = ref(0);
+const appointmentListRefreshKey = ref(0);
 const users = ref([]);
 
 // Количество непрочитанных уведомлений используется для индикатора в боковом меню.
@@ -165,6 +166,16 @@ async function cancelAppointment(appointment) {
   });
 }
 
+// Сохраняет изменения записи и синхронизирует все представления кабинета.
+async function updateAppointment({ id, data }) {
+  await executeRequest(async () => {
+    await http.patch(`/appointments/${id}`, data);
+    await loadWorkspace();
+    appointmentListRefreshKey.value += 1;
+    selectedAppointment.value = null;
+  });
+}
+
 // При открытии приложения восстанавливает авторизацию по сохранённому токену.
 onMounted(async () => {
   if (!getStoredToken()) {
@@ -210,6 +221,7 @@ onMounted(async () => {
     />
     <AppointmentListPage
       v-else-if="page === 'appointments'"
+      :refresh-key="appointmentListRefreshKey"
       @select-appointment="openAppointment"
       @select-client="openClient"
     />
@@ -241,8 +253,12 @@ onMounted(async () => {
     <AppointmentDetailsModal
       v-if="selectedAppointment"
       :appointment="selectedAppointment"
+      :clients="clients"
+      :employees="employees"
+      :error="error"
       @close="selectedAppointment = null"
       @cancel="cancelAppointment"
+      @save="updateAppointment"
     />
     <ClientDetailsModal
       v-if="selectedClient"
