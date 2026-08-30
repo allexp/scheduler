@@ -1,1 +1,18 @@
 .env
+
+# Настройки IDE
+/.idea/
+/.vscode/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Локальные файлы окружения
+.env.*
+!.env.example
+
+# Временные файлы
+*.log
+*.tmp
+*.bak
