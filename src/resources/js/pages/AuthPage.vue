@@ -46,7 +46,6 @@ function submit() {
         required
       />
 
-
       <input
         v-model="form.email"
         type="email"
@@ -67,16 +66,16 @@ function submit() {
         required
       />
 
-        <label
-            v-if="!registerMode"
-            class="remember"
-        >
-            <input
-                v-model="form.remember"
-                type="checkbox"
-            />
-            <span>Запомнить меня</span>
-        </label>
+      <label
+        v-if="!registerMode"
+        class="remember"
+      >
+        <input
+          v-model="form.remember"
+          type="checkbox"
+        />
+        <span>Запомнить меня</span>
+      </label>
 
       <div
         v-if="props.error"
