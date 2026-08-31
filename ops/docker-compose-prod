@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+project_dir="/opt/scheduler"
+
+cd "$project_dir"
+exec docker compose \
+    --env-file .env.production \
+    -f docker-compose.production.yml \
+    "$@"
