@@ -20,7 +20,7 @@ class GenerateDailyAppointments extends Command
     public function handle(): int
     {
         // Количество ближайших дней, среди которых выбираются даты записей.
-        $days = 10;
+        $days = 20;
 
         // Записи назначаются только существующим сотрудникам.
         $employees = User::query()->where('role', 'employee')->get();
