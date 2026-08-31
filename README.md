@@ -16,7 +16,7 @@
 
 ## Технологический стек
 
-- Laravel 13 и PHP 8.3;
+- Laravel 13 и PHP 8.4;
 - Vue 3, Vite 8 и Tailwind CSS 4;
 - PostgreSQL 17;
 - Redis 8;

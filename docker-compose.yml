@@ -5,7 +5,7 @@ services:
       dockerfile: docker/php/Dockerfile
     restart: unless-stopped
     working_dir: /var/www/html
-    command: sh -c "chown -R www-data:www-data storage bootstrap/cache && exec /usr/sbin/php-fpm8.3 -F"
+    command: sh -c "chown -R www-data:www-data storage bootstrap/cache && exec /usr/sbin/php-fpm8.4 -F"
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
