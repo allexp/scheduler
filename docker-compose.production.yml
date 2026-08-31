@@ -56,6 +56,28 @@ services:
       - backend
     mem_limit: 384m
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.production
+      target: app
+    restart: unless-stopped
+    command: php artisan schedule:work
+    env_file:
+      - ${SCHEDULER_ENV_FILE:-.env.production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_storage:/var/www/html/storage
+    networks:
+      - backend
+    mem_limit: 256m
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
