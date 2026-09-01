@@ -28,6 +28,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/scheduler/ssl/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/scheduler/ssl/private.key:/etc/nginx/ssl/private.key:ro
     depends_on:
       - app
     networks:
