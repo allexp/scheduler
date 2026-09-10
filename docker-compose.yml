@@ -120,13 +120,16 @@ services:
     networks:
       - backend
 
-  adminer:
-    image: adminer:5
+  pgadmin:
+    image: dpage/pgadmin4:latest
     restart: unless-stopped
     environment:
-      ADMINER_DEFAULT_SERVER: postgres
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin_password}
     ports:
-      - "${ADMINER_PORT:-8081}:8080"
+      - "127.0.0.1:${PGADMIN_PORT:-8082}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     depends_on:
       postgres:
         condition: service_healthy
@@ -185,6 +188,7 @@ services:
 
 volumes:
   postgres_data:
+  pgadmin_data:
   rabbitmq_data:
   redis_data:
   node_modules:

@@ -82,14 +82,15 @@ docker compose exec app php artisan migrate --seed
 
 - приложение: <http://localhost:8080>;
 - Vite: <http://localhost:5173>;
-- Adminer: <http://localhost:8082>;
+- pgAdmin: <http://localhost:8082>;
 - RabbitMQ Management: <http://localhost:15672>.
 
-Для подключения через Adminer используйте:
+Для входа в pgAdmin используйте значения `PGADMIN_DEFAULT_EMAIL` и
+`PGADMIN_DEFAULT_PASSWORD` из корневого `.env`. Затем зарегистрируйте сервер:
 
-- систему `PostgreSQL`;
-- сервер `postgres`;
-- базу данных, пользователя и пароль из корневого `.env`.
+- имя подключения — произвольное;
+- адрес сервера — `postgres`, порт — `5432`;
+- базу данных, пользователя и пароль — из корневого `.env`.
 
 Для RabbitMQ Management используйте `RABBITMQ_USER` и `RABBITMQ_PASSWORD` из
 корневого `.env`.
