@@ -17,8 +17,8 @@ Route::middleware('api.auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/dashboard', [MetaController::class, 'dashboard']);
     Route::get('/employees', [MetaController::class, 'employees']);
-    Route::apiResource('clients', ClientController::class);
-    Route::apiResource('appointments', AppointmentController::class);
+    Route::apiResource('clients', ClientController::class)->names('api.clients');
+    Route::apiResource('appointments', AppointmentController::class)->names('api.appointments');
     Route::post('/{type}/{id}/comments', [CommentController::class, 'store'])->whereIn('type', ['clients', 'appointments']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
     Route::get('/notifications', [NotificationController::class, 'index']);
@@ -26,6 +26,6 @@ Route::middleware('api.auth')->group(function () {
 
     Route::middleware('role:admin')->group(function () {
         Route::get('/history', [MetaController::class, 'history']);
-        Route::apiResource('users', UserController::class)->except('show');
+        Route::apiResource('users', UserController::class)->except('show')->names('api.users');
     });
 });

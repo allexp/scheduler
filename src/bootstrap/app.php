@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Middleware\AuthenticateApi;
+use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\RequireRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,7 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->alias(['api.auth'=>\App\Http\Middleware\AuthenticateApi::class,'role'=>\App\Http\Middleware\RequireRole::class]);
+        $middleware->web(append: [HandleInertiaRequests::class]);
+        $middleware->alias([
+            'api.auth' => AuthenticateApi::class,
+            'role' => RequireRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

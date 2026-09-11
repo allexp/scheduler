@@ -1,23 +1,21 @@
 <script setup>
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
-import http from '../api/http.js';
+import { onBeforeUnmount, reactive, watch } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 
 const props = defineProps({
-  refreshKey: {
-    type: Number,
-    default: 0,
+  appointments: {
+    type: Object,
+    required: true,
+  },
+  filters: {
+    type: Object,
+    default: () => ({}),
   },
 });
 
-defineEmits(['select-appointment', 'select-client']);
-
-const appointments = ref([]);
-const loading = ref(false);
-const error = ref('');
-const pagination = ref(null);
 const filters = reactive({
-  date: '',
-  search: '',
+  date: props.filters.date ?? '',
+  search: props.filters.search ?? '',
 });
 let searchTimer;
 
@@ -28,28 +26,16 @@ const statusLabels = {
   no_show: 'Не пришёл',
 };
 
-// Загружает одну страницу записей с текущими фильтрами.
-async function loadAppointments(page = 1) {
-  loading.value = true;
-  error.value = '';
-
-  try {
-    const { data } = await http.get('/appointments', {
-      params: {
-        paginate: 1,
-        page,
-        date: filters.date || undefined,
-        search: filters.search.trim() || undefined,
-      },
-    });
-
-    appointments.value = data.data;
-    pagination.value = data;
-  } catch (exception) {
-    error.value = exception.response?.data?.message ?? 'Не удалось загрузить список записей.';
-  } finally {
-    loading.value = false;
-  }
+// Обновляет список и URL по текущим фильтрам без полной перезагрузки страницы.
+function loadAppointments() {
+  router.get(
+    '/appointments',
+    {
+      date: filters.date || undefined,
+      search: filters.search.trim() || undefined,
+    },
+    { preserveState: true, preserveScroll: true, replace: true },
+  );
 }
 
 // Поиск запускается с небольшой задержкой, чтобы не отправлять запрос после каждого нажатия клавиши.
@@ -57,22 +43,12 @@ watch(
   () => filters.search,
   () => {
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => loadAppointments(), 350);
+    searchTimer = setTimeout(loadAppointments, 350);
   },
 );
 
-watch(
-  () => filters.date,
-  () => loadAppointments(),
-);
+watch(() => filters.date, loadAppointments);
 
-// После изменения записи в карточке перечитывает текущую страницу списка.
-watch(
-  () => props.refreshKey,
-  () => loadAppointments(pagination.value?.current_page ?? 1),
-);
-
-onMounted(() => loadAppointments());
 onBeforeUnmount(() => clearTimeout(searchTimer));
 
 function formatDate(date) {
@@ -85,6 +61,16 @@ function formatDate(date) {
 function clearFilters() {
   filters.date = '';
   filters.search = '';
+}
+
+// Открывает запись на календаре по постоянному адресу.
+function openAppointment(appointment) {
+  router.get('/calendar', { appointment: appointment.id });
+}
+
+// Открывает карточку клиента по постоянному адресу.
+function openClient(client) {
+  router.get('/clients', { client: client.id });
 }
 </script>
 
@@ -115,13 +101,6 @@ function clearFilters() {
       </button>
     </div>
 
-    <div
-      v-if="error"
-      class="error"
-    >
-      {{ error }}
-    </div>
-
     <div class="table-wrapper">
       <table>
         <thead>
@@ -136,15 +115,7 @@ function clearFilters() {
           </tr>
         </thead>
         <tbody>
-          <tr v-if="loading">
-            <td
-              colspan="7"
-              class="state-cell"
-            >
-              Загрузка записей…
-            </td>
-          </tr>
-          <tr v-else-if="!appointments.length">
+          <tr v-if="!appointments.data.length">
             <td
               colspan="7"
               class="state-cell"
@@ -153,7 +124,7 @@ function clearFilters() {
             </td>
           </tr>
           <tr
-            v-for="appointment in appointments"
+            v-for="appointment in appointments.data"
             v-else
             :key="appointment.id"
             :class="`status-${appointment.status}`"
@@ -162,7 +133,7 @@ function clearFilters() {
             <td>
               <button
                 class="link-button client-link"
-                @click="$emit('select-client', appointment.client)"
+                @click="openClient(appointment.client)"
               >
                 {{ appointment.client.full_name }}
               </button>
@@ -181,7 +152,7 @@ function clearFilters() {
             <td class="actions-cell">
               <button
                 class="secondary details-button"
-                @click="$emit('select-appointment', appointment)"
+                @click="openAppointment(appointment)"
               >
                 Открыть
               </button>
@@ -192,24 +163,26 @@ function clearFilters() {
     </div>
 
     <footer
-      v-if="pagination?.last_page > 1"
+      v-if="appointments.last_page > 1"
       class="pagination"
     >
-      <button
+      <Link
         class="secondary"
-        :disabled="pagination.current_page === 1"
-        @click="loadAppointments(pagination.current_page - 1)"
+        :class="{ disabled: !appointments.prev_page_url }"
+        :href="appointments.prev_page_url || '#'"
+        preserve-scroll
       >
         Назад
-      </button>
-      <span>Страница {{ pagination.current_page }} из {{ pagination.last_page }}</span>
-      <button
+      </Link>
+      <span>Страница {{ appointments.current_page }} из {{ appointments.last_page }}</span>
+      <Link
         class="secondary"
-        :disabled="pagination.current_page === pagination.last_page"
-        @click="loadAppointments(pagination.current_page + 1)"
+        :class="{ disabled: !appointments.next_page_url }"
+        :href="appointments.next_page_url || '#'"
+        preserve-scroll
       >
         Далее
-      </button>
+      </Link>
     </footer>
   </section>
 </template>
@@ -351,7 +324,8 @@ tbody tr:hover {
   font-size: 13px;
 }
 
-.pagination button:disabled {
+.pagination .disabled {
+  pointer-events: none;
   cursor: not-allowed;
   opacity: 0.45;
 }

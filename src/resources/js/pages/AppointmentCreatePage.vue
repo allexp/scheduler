@@ -1,8 +1,8 @@
 <script setup>
-import { reactive, watch } from 'vue';
+import { useForm } from '@inertiajs/vue3';
 
-// Справочники клиентов и сотрудников загружаются корневым компонентом.
-const props = defineProps({
+// Справочники клиентов и сотрудников передаются Laravel-контроллером.
+defineProps({
   clients: {
     type: Array,
     default: () => [],
@@ -11,14 +11,9 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
-  resetKey: {
-    type: Number,
-    default: 0,
-  },
 });
 
-const emit = defineEmits(['create']);
-const form = reactive(createEmptyForm());
+const form = useForm(createEmptyForm());
 
 // Возвращает начальные значения полей новой записи.
 function createEmptyForm() {
@@ -34,14 +29,8 @@ function createEmptyForm() {
 
 // Передаёт копию данных родителю, сохраняя локальные поля до успешного ответа API.
 function submit() {
-  emit('create', { ...form });
+  form.post('/appointments');
 }
-
-// Родитель изменяет ключ только после успешного создания записи.
-watch(
-  () => props.resetKey,
-  () => Object.assign(form, createEmptyForm()),
-);
 </script>
 
 <template>
@@ -129,6 +118,12 @@ watch(
         <textarea v-model="form.notes" />
       </label>
       <button class="primary">Создать запись</button>
+      <div
+        v-if="Object.keys(form.errors).length"
+        class="error"
+      >
+        {{ Object.values(form.errors)[0] }}
+      </div>
     </form>
   </section>
 </template>

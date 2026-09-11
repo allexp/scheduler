@@ -1,1 +1,13 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Онлайн-запись</title>@vite(['resources/js/app.js'])</head><body><div id="app"></div></body></html>
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title data-inertia>Онлайн-запись</title>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-inertia::head />
+    </head>
+    <body>
+        <x-inertia::app />
+    </body>
+</html>

@@ -1,14 +1,15 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { computed, ref } from 'vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps({
   users: { type: Array, default: () => [] },
-  currentUserId: { type: Number, required: true },
 });
 
-const emit = defineEmits(['save', 'remove']);
+const inertiaPage = usePage();
+const currentUserId = computed(() => inertiaPage.props.auth.user.id);
 const editingId = ref(null);
-const form = reactive(emptyForm());
+const form = useForm(emptyForm());
 
 // Создаёт начальное состояние формы пользователя.
 function emptyForm() {
@@ -24,17 +25,26 @@ function edit(user) {
 // Возвращает форму в режим создания.
 function reset() {
   editingId.value = null;
-  Object.assign(form, emptyForm());
+  form.defaults(emptyForm());
+  form.reset();
+  form.clearErrors();
 }
 
-// Передаёт данные формы родительскому компоненту.
+// Создаёт или обновляет пользователя через защищённый Inertia-маршрут.
 function submit() {
-  emit('save', { id: editingId.value, data: { ...form } });
+  if (editingId.value) {
+    form.put(`/users/${editingId.value}`, { onSuccess: reset });
+    return;
+  }
+
+  form.post('/users', { onSuccess: reset });
 }
 
 // Запрашивает подтверждение перед удалением учётной записи.
 function remove(user) {
-  if (window.confirm(`Удалить пользователя «${user.name}»?`)) emit('remove', user.id);
+  if (window.confirm(`Удалить пользователя «${user.name}»?`)) {
+    router.delete(`/users/${user.id}`);
+  }
 }
 </script>
 
@@ -142,6 +152,12 @@ function remove(user) {
         >
           Отмена
         </button>
+      </div>
+      <div
+        v-if="Object.keys(form.errors).length"
+        class="error"
+      >
+        {{ Object.values(form.errors)[0] }}
       </div>
     </form>
   </section>

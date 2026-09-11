@@ -1,5 +1,7 @@
 <script setup>
-// Компонент отвечает только за отображение навигации и передаёт действия родителю через события.
+import { Link } from '@inertiajs/vue3';
+
+// Компонент отображает ссылки Inertia и передаёт действие выхода layout-компоненту.
 defineProps({
   page: {
     type: String,
@@ -15,7 +17,7 @@ defineProps({
   },
 });
 
-defineEmits(['navigate', 'logout']);
+defineEmits(['logout']);
 </script>
 
 <template>
@@ -26,51 +28,51 @@ defineEmits(['navigate', 'logout']);
     </div>
 
     <nav>
-      <button
+      <Link
+        href="/calendar"
         :class="{ active: page === 'calendar' }"
-        @click="$emit('navigate', 'calendar')"
       >
         ▦ Календарь
-      </button>
-      <button
+      </Link>
+      <Link
+        href="/appointments"
         :class="{ active: page === 'appointments' }"
-        @click="$emit('navigate', 'appointments')"
       >
         ☷ Список записей
-      </button>
-      <button
+      </Link>
+      <Link
+        href="/clients"
         :class="{ active: page === 'clients' }"
-        @click="$emit('navigate', 'clients')"
       >
         ♙ Клиенты
-      </button>
-      <button
+      </Link>
+      <Link
+        href="/appointments/create"
         :class="{ active: page === 'new' }"
-        @click="$emit('navigate', 'new')"
       >
         ＋ Новая запись
-      </button>
-      <button
+      </Link>
+      <Link
+        href="/notifications"
         :class="{ active: page === 'notifications' }"
-        @click="$emit('navigate', 'notifications')"
       >
         ◇ Уведомления
         <i v-if="unreadCount">{{ unreadCount }}</i>
-      </button>
-      <button
+      </Link>
+      <Link
         v-if="user.role === 'admin'"
+        href="/users"
         :class="{ active: page === 'users' }"
-        @click="$emit('navigate', 'users')"
       >
         ♙ Пользователи
-      </button>
-      <button
+      </Link>
+      <Link
         v-if="user.role === 'admin'"
+        href="/history"
         :class="{ active: page === 'history' }"
-        @click="$emit('navigate', 'history')"
       >
         ↺ История
-      </button>
+      </Link>
     </nav>
 
     <div class="profile">
@@ -122,7 +124,8 @@ nav {
   gap: 6px;
 }
 
-nav button {
+nav a {
+  display: block;
   padding: 13px;
   color: #aeb9ca;
   font-weight: 600;
@@ -130,10 +133,11 @@ nav button {
   background: transparent;
   border: 0;
   border-radius: 9px;
+  text-decoration: none;
 }
 
-nav button.active,
-nav button:hover {
+nav a.active,
+nav a:hover {
   color: #fff;
   background: var(--color-sidebar-active);
 }

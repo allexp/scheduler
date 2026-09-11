@@ -1,59 +1,55 @@
 <script setup>
+import { computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppSidebar from '../components/AppSidebar.vue';
 
-// Layout получает состояние навигации от корневого компонента и не загружает данные самостоятельно.
-defineProps({
-  page: {
-    type: String,
-    required: true,
-  },
-  user: {
-    type: Object,
-    required: true,
-  },
-  unreadCount: {
-    type: Number,
-    default: 0,
-  },
-});
-
-defineEmits(['navigate', 'logout']);
+const inertiaPage = usePage();
 
 // Заголовки страниц хранятся рядом с layout, потому что отображаются в общей шапке.
-const pageTitles = {
-  calendar: 'Календарь записей',
-  appointments: 'Список записей',
-  clients: 'Клиенты',
-  new: 'Новая запись',
-  notifications: 'Уведомления',
-  history: 'История изменений',
-  users: 'Пользователи',
+const pageMeta = {
+  CalendarPage: ['calendar', 'Календарь записей'],
+  AppointmentListPage: ['appointments', 'Список записей'],
+  ClientsPage: ['clients', 'Клиенты'],
+  AppointmentCreatePage: ['new', 'Новая запись'],
+  NotificationsPage: ['notifications', 'Уведомления'],
+  HistoryPage: ['history', 'История изменений'],
+  UsersPage: ['users', 'Пользователи'],
 };
+
+const page = computed(() => pageMeta[inertiaPage.component]?.[0] ?? 'calendar');
+const title = computed(() => pageMeta[inertiaPage.component]?.[1] ?? 'Расписание');
+const user = computed(() => inertiaPage.props.auth.user);
+const unreadCount = computed(() => inertiaPage.props.unreadNotificationsCount ?? 0);
+
+// Завершает сессию через Laravel и переводит пользователя на форму входа.
+function logout() {
+  router.post('/logout');
+}
 </script>
 
 <template>
+  <Head :title="title" />
   <div class="layout">
     <AppSidebar
       :page="page"
       :user="user"
       :unread-count="unreadCount"
-      @navigate="$emit('navigate', $event)"
-      @logout="$emit('logout')"
+      @logout="logout"
     />
 
     <main>
       <header>
         <div>
           <small>РАБОЧЕЕ ПРОСТРАНСТВО</small>
-          <h2>{{ pageTitles[page] }}</h2>
+          <h2>{{ title }}</h2>
         </div>
 
-        <button
+        <Link
+          href="/appointments/create"
           class="primary"
-          @click="$emit('navigate', 'new')"
         >
           ＋ Добавить запись
-        </button>
+        </Link>
       </header>
 
       <slot />

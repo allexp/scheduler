@@ -1,19 +1,16 @@
 <script setup>
-import { reactive, ref } from 'vue';
+import { computed } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 
-// Ошибка приходит из корневого компонента, где централизованно обрабатываются ответы API.
 const props = defineProps({
-  error: {
+  mode: {
     type: String,
-    default: '',
+    default: 'login',
   },
 });
 
-const emit = defineEmits(['submit']);
-
-// Одна форма используется для входа и регистрации, чтобы не дублировать общие поля.
-const registerMode = ref(false);
-const form = reactive({
+const registerMode = computed(() => props.mode === 'register');
+const form = useForm({
   name: '',
   email: 'admin@example.com',
   password: 'password',
@@ -21,16 +18,16 @@ const form = reactive({
   remember: false,
 });
 
-// Родитель определяет API-маршрут по переданному режиму формы.
+// Отправляет форму в соответствующий сессионный маршрут Laravel.
 function submit() {
-  emit('submit', {
-    registerMode: registerMode.value,
-    form: { ...form },
+  form.post(registerMode.value ? '/register' : '/login', {
+    onFinish: () => form.reset('password', 'password_confirmation'),
   });
 }
 </script>
 
 <template>
+  <Head :title="registerMode ? 'Регистрация' : 'Вход'" />
   <div class="auth-shell">
     <form
       class="auth-card"
@@ -78,16 +75,16 @@ function submit() {
       </label>
 
       <div
-        v-if="props.error"
+        v-if="Object.keys(form.errors).length"
         class="error"
       >
-        {{ props.error }}
+        {{ Object.values(form.errors)[0] }}
       </div>
 
-      <button>Продолжить</button>
-      <a @click="registerMode = !registerMode">
+      <button :disabled="form.processing">Продолжить</button>
+      <Link :href="registerMode ? '/login' : '/register'">
         {{ registerMode ? 'У меня уже есть аккаунт' : 'Создать аккаунт' }}
-      </a>
+      </Link>
     </form>
   </div>
 </template>

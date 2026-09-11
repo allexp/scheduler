@@ -1,5 +1,5 @@
 <script setup>
-// Страница только отображает уведомления; получение данных выполняется в App.vue.
+// Страница отображает уведомления, переданные Laravel через Inertia props.
 defineProps({
   notifications: {
     type: Array,

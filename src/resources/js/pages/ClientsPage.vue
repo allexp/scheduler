@@ -1,16 +1,23 @@
 <script setup>
-import { reactive } from 'vue';
+import { computed } from 'vue';
+import { router, useForm, usePage } from '@inertiajs/vue3';
+import ClientDetailsModal from '../components/ClientDetailsModal.vue';
 
-// Список клиентов загружается на уровне App.vue и передаётся странице через props.
-defineProps({
+// Список и выбранная карточка клиента поступают из Inertia-контроллера.
+const props = defineProps({
   clients: {
     type: Array,
     default: () => [],
   },
+  selectedClient: {
+    type: Object,
+    default: null,
+  },
 });
 
-const emit = defineEmits(['create', 'select']);
-const form = reactive(createEmptyForm());
+const form = useForm(createEmptyForm());
+const inertiaPage = usePage();
+const error = computed(() => Object.values(inertiaPage.props.errors ?? {})[0] ?? '');
 
 // Возвращает независимое начальное состояние формы клиента.
 function createEmptyForm() {
@@ -26,8 +33,30 @@ function createEmptyForm() {
 
 // Передаёт заполненные данные родителю и очищает локальную форму.
 function submit() {
-  emit('create', { ...form });
-  Object.assign(form, createEmptyForm());
+  form.post('/clients', {
+    preserveScroll: true,
+    onSuccess: () => form.reset(),
+  });
+}
+
+// Открывает карточку клиента с отражением её идентификатора в URL.
+function openClient(client) {
+  router.get('/clients', { client: client.id }, { preserveScroll: true });
+}
+
+// Закрывает карточку клиента и очищает URL.
+function closeClient() {
+  router.get('/clients', {}, { preserveScroll: true });
+}
+
+// Сохраняет изменения карточки клиента.
+function updateClient({ id, data }) {
+  router.patch(`/clients/${id}`, data);
+}
+
+// Переходит к выбранной записи в календаре.
+function openAppointment(appointment) {
+  router.get('/calendar', { appointment: appointment.id });
 }
 </script>
 
@@ -41,7 +70,7 @@ function submit() {
         :key="client.id"
         class="client"
         type="button"
-        @click="emit('select', client)"
+        @click="openClient(client)"
       >
         <div class="avatar">{{ client.first_name[0] }}{{ client.last_name[0] }}</div>
         <div>
@@ -96,6 +125,15 @@ function submit() {
       />
       <button class="primary">Сохранить клиента</button>
     </form>
+
+    <ClientDetailsModal
+      v-if="props.selectedClient"
+      :client="props.selectedClient"
+      :error="error"
+      @close="closeClient"
+      @save="updateClient"
+      @select-appointment="openAppointment"
+    />
   </section>
 </template>
 

@@ -1,7 +1,9 @@
 <script setup>
 import { computed, ref } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
+import AppointmentDetailsModal from '../components/AppointmentDetailsModal.vue';
 
-// Записи и показатели загружаются корневым компонентом и передаются странице через props.
+// Записи и показатели передаются Laravel-контроллером через Inertia props.
 const props = defineProps({
   appointments: {
     type: Array,
@@ -11,11 +13,23 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  selectedAppointment: {
+    type: Object,
+    default: null,
+  },
+  clients: {
+    type: Array,
+    default: () => [],
+  },
+  employees: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-defineEmits(['select']);
-
 const month = ref(new Date());
+const inertiaPage = usePage();
+const error = computed(() => Object.values(inertiaPage.props.errors ?? {})[0] ?? '');
 const weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 // Начало текущего дня используется для визуального разделения прошлого и будущего.
@@ -93,6 +107,30 @@ function formatTime(date) {
     minute: '2-digit',
   });
 }
+
+// Открывает запись по адресу, который можно сохранить или отправить другому пользователю.
+function openAppointment(appointment) {
+  router.get('/calendar', { appointment: appointment.id }, { preserveScroll: true });
+}
+
+// Закрывает карточку, очищая параметр выбранной записи в URL.
+function closeAppointment() {
+  router.get('/calendar', {}, { preserveScroll: true });
+}
+
+// Сохраняет изменения записи через Inertia и закрывает карточку после успеха.
+function updateAppointment({ id, data }) {
+  router.patch(`/appointments/${id}`, data, { onSuccess: closeAppointment });
+}
+
+// Переводит выбранную запись в отменённое состояние.
+function cancelAppointment(appointment) {
+  router.patch(
+    `/appointments/${appointment.id}`,
+    { status: 'cancelled' },
+    { onSuccess: closeAppointment },
+  );
+}
 </script>
 
 <template>
@@ -152,7 +190,7 @@ function formatTime(date) {
             :key="appointment.id"
             :class="[appointment.status, { 'past-appointment': isPastAppointment(appointment) }]"
             :title="appointment.service"
-            @click="$emit('select', appointment)"
+            @click="openAppointment(appointment)"
           >
             <time>{{ formatTime(appointment.starts_at) }}</time>
             {{ appointment.client.full_name || appointment.client.last_name }}
@@ -160,6 +198,17 @@ function formatTime(date) {
         </div>
       </div>
     </div>
+
+    <AppointmentDetailsModal
+      v-if="selectedAppointment"
+      :appointment="selectedAppointment"
+      :clients="clients"
+      :employees="employees"
+      :error="error"
+      @close="closeAppointment"
+      @cancel="cancelAppointment"
+      @save="updateAppointment"
+    />
   </section>
 </template>
 
