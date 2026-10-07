@@ -24,6 +24,8 @@ docker compose version >/dev/null 2>&1 || fail "Docker Compose недоступ�
 [[ -d "$project_dir/.git" ]] || fail "в $project_dir не найден Git-репозиторий"
 cd "$project_dir"
 
+export GIT_SSH_COMMAND="ssh -i /home/deploy/.ssh/id_ed25519 -o IdentitiesOnly=yes"
+
 [[ -f "$env_file" ]] || fail "не найден файл окружения $env_file"
 [[ -f "$compose_file" ]] || fail "не найден Compose-файл $compose_file"
 
