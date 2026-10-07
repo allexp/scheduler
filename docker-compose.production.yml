@@ -1,4 +1,13 @@
 services:
+  resume:
+    image: php:8.4-fpm-alpine
+    restart: unless-stopped
+    volumes:
+      - /opt/resume:/var/www/resume:ro
+    networks:
+      - backend
+    mem_limit: 64m
+
   app:
     build:
       context: .
@@ -32,8 +41,10 @@ services:
     volumes:
       - /etc/scheduler/ssl/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
       - /etc/scheduler/ssl/private.key:/etc/nginx/ssl/private.key:ro
+      - /opt/resume:/var/www/resume:ro
     depends_on:
       - app
+      - resume
     networks:
       - backend
     mem_limit: 64m
